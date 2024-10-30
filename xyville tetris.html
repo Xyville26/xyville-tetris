@@ -1,0 +1,931 @@
+<html><head><base href=".">
+<meta charset="UTF-8">
+<title>Tetris Game</title>
+<style>
+    body {
+        background: #1a1a1a;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        margin: 0;
+        font-family: Arial, sans-serif;
+        color: white;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .halloween-container {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: -1;
+        pointer-events: none;
+    }
+
+    .ghost {
+        position: absolute;
+        width: 60px;
+        height: 80px;
+        animation: floatGhost 15s linear infinite;
+        opacity: 0.4;
+    }
+
+    .bat {
+        position: absolute;
+        width: 40px;
+        height: 30px;
+        animation: flyBat 12s linear infinite;
+        opacity: 0.4;
+    }
+
+    @keyframes floatGhost {
+        0% {
+            transform: translateX(-100px) translateY(0) scale(1);
+            opacity: 0;
+        }
+        10% {
+            opacity: 0.4;
+        }
+        90% {
+            opacity: 0.4;
+        }
+        100% {
+            transform: translateX(calc(100vw + 100px)) translateY(-50px) scale(1.2);
+            opacity: 0;
+        }
+    }
+
+    @keyframes flyBat {
+        0% {
+            transform: translateX(calc(100vw + 100px)) translateY(0) scale(1) rotateY(180deg);
+            opacity: 0;
+        }
+        10% {
+            opacity: 0.4;
+        }
+        90% {
+            opacity: 0.4;
+        }
+        100% {
+            transform: translateX(-100px) translateY(-100px) scale(1.2) rotateY(180deg);
+            opacity: 0;
+        }
+    }
+
+    .pause-overlay {
+        display: none;
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.7);
+        z-index: 10;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .resume-button {
+        background: #4CAF50;
+        border: none;
+        color: white;
+        padding: 15px 30px;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 18px;
+        transition: background 0.3s;
+    }
+
+    .resume-button:hover {
+        background: #45a049;
+    }
+    
+    .leaves-container {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: -2;
+        pointer-events: none;
+    }
+
+    .leaf {
+        position: absolute;
+        animation: falling linear infinite;
+        opacity: 0.7;
+        width: 40px;
+        height: 40px;
+    }
+
+    @keyframes falling {
+        0% {
+            transform: translate(0, -10%) rotate(0deg);
+        }
+        100% {
+            transform: translate(100px, 1000%) rotate(360deg);
+        }
+    }
+
+    .lantern-container {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: -1;
+        animation: lanternGlow 4s infinite;
+    }
+
+    @keyframes lanternGlow {
+        0%, 100% { opacity: 0.5; }
+        50% { opacity: 0.8; }
+    }
+
+    .lantern {
+        position: absolute;
+        width: 120px;
+        height: 160px;
+        animation: floatLantern 8s infinite;
+    }
+
+    @keyframes floatLantern {
+        0%, 100% { transform: translateY(0) translateX(0); }
+        25% { transform: translateY(-20px) translateX(10px); }
+        50% { transform: translateY(0) translateX(20px); }
+        75% { transform: translateY(20px) translateX(10px); }
+    }
+
+    body {
+        background: #1a1a1a;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        margin: 0;
+        font-family: Arial, sans-serif;
+        color: white;
+    }
+    
+    .game-container {
+        display: flex;
+        gap: 20px;
+    }
+    
+    #game-board {
+        border: 2px solid #333;
+        background: #000;
+    }
+    
+    .info-panel {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
+    
+    .score-box {
+        background: #333;
+        padding: 15px;
+        border-radius: 5px;
+    }
+    
+    .controls {
+        background: #333;
+        padding: 15px;
+        border-radius: 5px;
+    }
+
+    .space-button {
+        background: #444;
+        border: none;
+        color: white;
+        padding: 15px 30px;
+        border-radius: 5px;
+        cursor: pointer;
+        margin-top: 10px;
+        width: 100%;
+        font-size: 16px;
+        transition: background 0.3s;
+    }
+
+    .space-button:hover {
+        background: #555;
+    }
+
+    .space-button:active {
+        background: #666;
+    }
+
+    .pause-button {
+        background: #444;
+        border: none;
+        color: white;
+        padding: 15px 30px;
+        border-radius: 5px;
+        cursor: pointer;
+        margin-top: 10px;
+        width: 100%;
+        font-size: 16px;
+        transition: background 0.3s;
+    }
+
+    .pause-button:hover {
+        background: #555;
+    }
+
+    .pause-button:active {
+        background: #666;
+    }
+
+    .restart-button {
+        background: #d32f2f;
+        border: none;
+        color: white;
+        padding: 15px 30px;
+        border-radius: 5px;
+        cursor: pointer;
+        margin-top: 10px;
+        width: 100%;
+        font-size: 16px;
+        transition: background 0.3s;
+    }
+
+    .restart-button:hover {
+        background: #b71c1c;
+    }
+
+    .restart-button:active {
+        background: #c62828;
+    }
+
+    .settings-panel {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: rgba(51, 51, 51, 0.95);
+        padding: 20px;
+        border-radius: 10px;
+        z-index: 20;
+        display: none;
+        min-width: 300px;
+    }
+
+    .settings-panel h2 {
+        margin-top: 0;
+        color: white;
+        text-align: center;
+    }
+
+    .settings-option {
+        margin: 15px 0;
+        color: white;
+    }
+
+    .settings-option label {
+        display: block;
+        margin-bottom: 5px;
+    }
+
+    .settings-option select,
+    .settings-option input[type="range"] {
+        width: 100%;
+        padding: 5px;
+        background: #444;
+        color: white;
+        border: 1px solid #666;
+        border-radius: 4px;
+    }
+
+    .settings-buttons {
+        display: flex;
+        gap: 10px;
+        margin-top: 20px;
+    }
+
+    .settings-buttons button {
+        flex: 1;
+        padding: 10px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: background 0.3s;
+    }
+
+    .save-settings {
+        background: #4CAF50;
+        color: white;
+    }
+
+    .cancel-settings {
+        background: #f44336;
+        color: white;
+    }
+
+    .settings-button {
+        background: #444;
+        border: none;
+        color: white;
+        padding: 15px 30px;
+        border-radius: 5px;
+        cursor: pointer;
+        margin-top: 10px;
+        width: 100%;
+        font-size: 16px;
+        transition: background 0.3s;
+    }
+
+    .settings-button:hover {
+        background: #555;
+    }
+
+    .settings-button:active {
+        background: #666;
+    }
+</style>
+</head>
+<body>
+<div class="pause-overlay">
+    <button class="resume-button">Resume Game</button>
+</div>
+<div class="settings-panel">
+    <h2>Game Settings</h2>
+    <div class="settings-option">
+        <label for="difficulty">Game Speed:</label>
+        <select id="difficulty">
+            <option value="easy">Easy</option>
+            <option value="normal" selected>Normal</option>
+            <option value="hard">Hard</option>
+        </select>
+    </div>
+    <div class="settings-option">
+        <label for="particlesDensity">Background Effects Density:</label>
+        <input type="range" id="particlesDensity" min="0" max="100" value="50">
+    </div>
+    <div class="settings-option">
+        <label for="musicVolume">Music Volume:</label>
+        <input type="range" id="musicVolume" min="0" max="100" value="50">
+    </div>
+    <div class="settings-buttons">
+        <button class="save-settings">Save</button>
+        <button class="cancel-settings">Cancel</button>
+    </div>
+</div>
+<div class="leaves-container"></div>
+<div class="halloween-container">
+    <svg class="ghost" style="top: 20%;" viewBox="0 0 100 120">
+        <path d="M20,50 q30,-40 60,0 q10,20 10,40 q0,20 -10,30 q-10,-10 -15,0 q-15,-10 -30,0 q-5,-10 -15,0 q-10,-10 -10,-30 q0,-20 10,-40" 
+              fill="#ffffff" opacity="0.6"/>
+        <circle cx="40" cy="45" r="5" fill="#000000"/>
+        <circle cx="60" cy="45" r="5" fill="#000000"/>
+    </svg>
+    <svg class="bat" style="top: 40%;" viewBox="0 0 100 60">
+        <path d="M30,30 q20,-30 40,0 q10,-20 20,-10 q-10,20 -10,20 q10,20 -20,10 q-20,10 -40,0 q-30,10 -20,-10 q0,0 -10,-20 q10,-10 20,10"
+              fill="#2b2b2b"/>
+    </svg>
+</div>
+<div class="lantern-container">
+    <svg class="lantern" style="top: 10%; left: 10%;" viewBox="0 0 100 140">
+        <path d="M40,20 h20 l10,20 l-40,0 z" fill="#ff9933" opacity="0.9"/>
+        <rect x="35" y="40" width="30" height="60" rx="5" fill="#ff6600" opacity="0.9"/>
+        <circle cx="50" cy="70" r="15" fill="#ffcc00" opacity="0.8">
+            <animate attributeName="opacity" values="0.6;1;0.6" dur="2s" repeatCount="indefinite"/>
+        </circle>
+    </svg>
+    <svg class="lantern" style="top: 30%; left: 80%;" viewBox="0 0 100 140">
+        <path d="M40,20 h20 l10,20 l-40,0 z" fill="#ff9933" opacity="0.9"/>
+        <rect x="35" y="40" width="30" height="60" rx="5" fill="#ff6600" opacity="0.9"/>
+        <circle cx="50" cy="70" r="15" fill="#ffcc00" opacity="0.8">
+            <animate attributeName="opacity" values="0.6;1;0.6" dur="3s" repeatCount="indefinite"/>
+        </circle>
+    </svg>
+    <svg class="lantern" style="top: 60%; left: 20%;" viewBox="0 0 100 140">
+        <path d="M40,20 h20 l10,20 l-40,0 z" fill="#ff9933" opacity="0.9"/>
+        <rect x="35" y="40" width="30" height="60" rx="5" fill="#ff6600" opacity="0.9"/>
+        <circle cx="50" cy="70" r="15" fill="#ffcc00" opacity="0.8">
+            <animate attributeName="opacity" values="0.6;1;0.6" dur="4s" repeatCount="indefinite"/>
+        </circle>
+    </svg>
+</div>
+
+<div class="game-container">
+    <canvas id="game-board" width="300" height="600"></canvas>
+    <div class="info-panel">
+        <div class="score-box">
+            <h2>Score: <span id="score">0</span></h2>
+            <h3>Level: <span id="level">1</span></h3>
+        </div>
+        <div class="controls">
+            <h3>Controls:</h3>
+            <p>← → : Move</p>
+            <p>↑ : Rotate</p>
+            <p>↓ : Soft Drop</p>
+            <p>Space : Hard Drop</p>
+            <p>ESC : Pause</p>
+            <button class="space-button">Space (Hard Drop)</button>
+            <button class="pause-button">Pause Game</button>
+            <button class="restart-button">Restart Game</button>
+            <button class="settings-button">Game Settings</button>
+        </div>
+    </div>
+</div>
+
+<script>
+// Leaves animation
+function createLeaf() {
+    const leaf = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    leaf.setAttribute("class", "leaf");
+    leaf.setAttribute("width", "40");
+    leaf.setAttribute("height", "40");
+    leaf.setAttribute("viewBox", "0 0 100 100");
+    
+    const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+    path.setAttribute("d", "M50,0 C70,20 90,50 50,100 C10,50 30,20 50,0");
+    path.setAttribute("fill", `rgba(${Math.random() * 30 + 220}, ${Math.random() * 80 + 120}, 0, 0.5)`);
+    
+    leaf.appendChild(path);
+    leaf.style.left = Math.random() * 100 + '%';
+    leaf.style.animationDuration = Math.random() * 10 + 5 + 's';
+    
+    document.querySelector('.leaves-container').appendChild(leaf);
+    
+    // Remove leaf after animation completes
+    setTimeout(() => {
+        leaf.remove();
+    }, parseFloat(leaf.style.animationDuration) * 1000);
+}
+
+// Create new leaves periodically
+setInterval(createLeaf, 300);
+
+function createHalloweenSprite() {
+    const isGhost = Math.random() > 0.5;
+    const sprite = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    sprite.setAttribute("class", isGhost ? "ghost" : "bat");
+    sprite.setAttribute("viewBox", isGhost ? "0 0 100 120" : "0 0 100 60");
+    
+    const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+    
+    if (isGhost) {
+        path.setAttribute("d", "M20,50 q30,-40 60,0 q10,20 10,40 q0,20 -10,30 q-10,-10 -15,0 q-15,-10 -30,0 q-5,-10 -15,0 q-10,-10 -10,-30 q0,-20 10,-40");
+        path.setAttribute("fill", "#ffffff");
+        path.setAttribute("opacity", "0.6");
+        
+        const eye1 = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+        eye1.setAttribute("cx", "40");
+        eye1.setAttribute("cy", "45");
+        eye1.setAttribute("r", "5");
+        eye1.setAttribute("fill", "#000000");
+        
+        const eye2 = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+        eye2.setAttribute("cx", "60");
+        eye2.setAttribute("cy", "45");
+        eye2.setAttribute("r", "5");
+        eye2.setAttribute("fill", "#000000");
+        
+        sprite.appendChild(path);
+        sprite.appendChild(eye1);
+        sprite.appendChild(eye2);
+    } else {
+        path.setAttribute("d", "M30,30 q20,-30 40,0 q10,-20 20,-10 q-10,20 -10,20 q10,20 -20,10 q-20,10 -40,0 q-30,10 -20,-10 q0,0 -10,-20 q10,-10 20,10");
+        path.setAttribute("fill", "#2b2b2b");
+        sprite.appendChild(path);
+    }
+    
+    sprite.style.top = Math.random() * 80 + 10 + '%';
+    
+    document.querySelector('.halloween-container').appendChild(sprite);
+    
+    // Remove sprite after animation completes
+    setTimeout(() => {
+        sprite.remove();
+    }, isGhost ? 15000 : 12000);
+}
+
+// Create new Halloween sprites periodically
+let leafInterval = setInterval(createLeaf, 300);
+let halloweenInterval = setInterval(createHalloweenSprite, 3000);
+
+// Settings management
+const settingsPanel = document.querySelector('.settings-panel');
+const settingsButton = document.querySelector('.settings-button');
+const saveSettingsBtn = document.querySelector('.save-settings');
+const cancelSettingsBtn = document.querySelector('.cancel-settings');
+const difficultySelect = document.getElementById('difficulty');
+const particlesDensity = document.getElementById('particlesDensity');
+const musicVolume = document.getElementById('musicVolume');
+
+let gameSettings = {
+    difficulty: 'normal',
+    particlesDensity: 50,
+    musicVolume: 50
+};
+
+function openSettings() {
+    if (!isPaused) togglePause();
+    settingsPanel.style.display = 'block';
+}
+
+function closeSettings() {
+    settingsPanel.style.display = 'none';
+    if (isPaused) togglePause();
+}
+
+function saveSettings() {
+    gameSettings.difficulty = difficultySelect.value;
+    gameSettings.particlesDensity = parseInt(particlesDensity.value);
+    gameSettings.musicVolume = parseInt(musicVolume.value);
+    
+    // Apply settings
+    switch(gameSettings.difficulty) {
+        case 'easy':
+            dropInterval = 1200;
+            break;
+        case 'normal':
+            dropInterval = 1000;
+            break;
+        case 'hard':
+            dropInterval = 700;
+            break;
+    }
+    
+    // Update particle generation rate
+    const baseParticleInterval = 300;
+    const newInterval = baseParticleInterval * (100 / gameSettings.particlesDensity);
+    
+    // Clear existing intervals and set new ones
+    clearInterval(leafInterval);
+    clearInterval(halloweenInterval);
+    leafInterval = setInterval(createLeaf, newInterval);
+    halloweenInterval = setInterval(createHalloweenSprite, newInterval * 10);
+    
+    closeSettings();
+}
+
+settingsButton.addEventListener('click', openSettings);
+saveSettingsBtn.addEventListener('click', saveSettings);
+cancelSettingsBtn.addEventListener('click', closeSettings);
+
+const canvas = document.getElementById('game-board');
+const ctx = canvas.getContext('2d');
+const BLOCK_SIZE = 30;
+const BOARD_WIDTH = 10;
+const BOARD_HEIGHT = 20;
+let score = 0;
+let level = 1;
+// Helper function for color adjustment
+function adjustColor(color, amount) {
+    const hex = color.replace('#', '');
+    const r = Math.max(0, Math.min(255, parseInt(hex.substr(0, 2), 16) + amount));
+    const g = Math.max(0, Math.min(255, parseInt(hex.substr(2, 2), 16) + amount));
+    const b = Math.max(0, Math.min(255, parseInt(hex.substr(4, 2), 16) + amount));
+    return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
+}
+
+let gameLoop;
+let dropInterval = 1000;
+let isPaused = false;
+const pauseOverlay = document.querySelector('.pause-overlay');
+
+// Tetromino shapes
+const SHAPES = {
+    I: [[1, 1, 1, 1]],
+    O: [[1, 1], [1, 1]],
+    T: [[0, 1, 0], [1, 1, 1]],
+    S: [[0, 1, 1], [1, 1, 0]],
+    Z: [[1, 1, 0], [0, 1, 1]],
+    J: [[1, 0, 0], [1, 1, 1]],
+    L: [[0, 0, 1], [1, 1, 1]]
+};
+
+const COLORS = {
+    I: '#7B2CBF', // Ghostly Purple
+    O: '#FF6B1A', // Pumpkin Orange
+    T: '#1B998B', // Toxic Green
+    S: '#71B340', // Slime Green
+    Z: '#E71D36', // Blood Red
+    J: '#FF9505', // Candy Corn Orange
+    L: '#540D6E'  // Dark Purple
+};
+
+let board = Array(BOARD_HEIGHT).fill().map(() => Array(BOARD_WIDTH).fill(0));
+let currentPiece = null;
+let currentPiecePosition = { x: 0, y: 0 };
+
+class Tetromino {
+    constructor(shape) {
+        this.shape = SHAPES[shape];
+        this.color = COLORS[shape];
+    }
+}
+
+function createNewPiece() {
+    const shapes = Object.keys(SHAPES);
+    const randomShape = shapes[Math.floor(Math.random() * shapes.length)];
+    currentPiece = new Tetromino(randomShape);
+    currentPiecePosition = {
+        x: Math.floor((BOARD_WIDTH - currentPiece.shape[0].length) / 2),
+        y: 0
+    };
+    
+    if (isCollision()) {
+        gameOver();
+    }
+}
+
+function drawShadow() {
+    if (!currentPiece) return;
+    
+    // Find landing position
+    let shadowY = currentPiecePosition.y;
+    while (shadowY < BOARD_HEIGHT) {
+        let collision = currentPiece.shape.some((row, y) => {
+            return row.some((value, x) => {
+                if (!value) return false;
+                const newX = currentPiecePosition.x + x;
+                const newY = shadowY + y;
+                return newY >= BOARD_HEIGHT || (newY >= 0 && board[newY][newX]);
+            });
+        });
+        
+        if (collision) break;
+        shadowY++;
+    }
+    shadowY--;
+    
+    // Draw shadow
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
+    currentPiece.shape.forEach((row, y) => {
+        row.forEach((value, x) => {
+            if (value) {
+                ctx.fillRect(
+                    (currentPiecePosition.x + x) * BLOCK_SIZE,
+                    (shadowY + y) * BLOCK_SIZE,
+                    BLOCK_SIZE - 1,
+                    BLOCK_SIZE - 1
+                );
+            }
+        });
+    });
+}
+
+function drawHalloweenBlock(ctx, posX, posY, color) {
+    // Main block
+    ctx.fillStyle = color;
+    ctx.fillRect(posX, posY, BLOCK_SIZE - 1, BLOCK_SIZE - 1);
+    
+    // Spooky texture overlay
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
+    
+    // Create cobweb-like pattern in corners
+    ctx.beginPath();
+    ctx.moveTo(posX + 2, posY + 2);
+    ctx.lineTo(posX + 8, posY + 8);
+    ctx.moveTo(posX + BLOCK_SIZE - 3, posY + 2);
+    ctx.lineTo(posX + BLOCK_SIZE - 9, posY + 8);
+    ctx.stroke();
+    
+    // Add spooky spots
+    for(let i = 0; i < 4; i++) {
+        const spotX = posX + Math.random() * (BLOCK_SIZE - 4) + 2;
+        const spotY = posY + Math.random() * (BLOCK_SIZE - 4) + 2;
+        ctx.beginPath();
+        ctx.arc(spotX, spotY, 1, 0, Math.PI * 2);
+        ctx.fill();
+    }
+    
+    // Highlight effect
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
+    ctx.fillRect(posX + 2, posY + 2, 4, 4);
+    
+    // Dark edges
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
+    ctx.fillRect(posX + BLOCK_SIZE - 4, posY, 3, BLOCK_SIZE);
+    ctx.fillRect(posX, posY + BLOCK_SIZE - 4, BLOCK_SIZE, 3);
+}
+
+function draw() {
+    // Clear canvas
+    ctx.fillStyle = '#000';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    
+    // Draw shadow first
+    drawShadow();
+    
+    // Draw board
+    for (let y = 0; y < BOARD_HEIGHT; y++) {
+        for (let x = 0; x < BOARD_WIDTH; x++) {
+            if (board[y][x]) {
+                const posX = x * BLOCK_SIZE;
+                const posY = y * BLOCK_SIZE;
+                
+                drawHalloweenBlock(ctx, posX, posY, board[y][x]);
+            }
+        }
+    }
+    
+    // Draw current piece
+    if (currentPiece) {
+        currentPiece.shape.forEach((row, y) => {
+            row.forEach((value, x) => {
+                if (value) {
+                    const posX = (currentPiecePosition.x + x) * BLOCK_SIZE;
+                    const posY = (currentPiecePosition.y + y) * BLOCK_SIZE;
+                    
+                    drawHalloweenBlock(ctx, posX, posY, currentPiece.color);
+                }
+            });
+        });
+    }
+}
+
+function isCollision() {
+    return currentPiece.shape.some((row, y) => {
+        return row.some((value, x) => {
+            if (!value) return false;
+            const newX = currentPiecePosition.x + x;
+            const newY = currentPiecePosition.y + y;
+            return newX < 0 || newX >= BOARD_WIDTH || 
+                   newY >= BOARD_HEIGHT ||
+                   (newY >= 0 && board[newY][newX]);
+        });
+    });
+}
+
+function rotate() {
+    const newShape = currentPiece.shape[0].map((_, i) =>
+        currentPiece.shape.map(row => row[i]).reverse()
+    );
+    
+    const oldShape = currentPiece.shape;
+    currentPiece.shape = newShape;
+    
+    if (isCollision()) {
+        currentPiece.shape = oldShape;
+    }
+}
+
+function moveDown() {
+    currentPiecePosition.y++;
+    if (isCollision()) {
+        currentPiecePosition.y--;
+        mergePiece();
+        clearLines();
+        createNewPiece();
+    }
+}
+
+function mergePiece() {
+    currentPiece.shape.forEach((row, y) => {
+        row.forEach((value, x) => {
+            if (value) {
+                const newY = currentPiecePosition.y + y;
+                const newX = currentPiecePosition.x + x;
+                if (newY >= 0) {
+                    board[newY][newX] = currentPiece.color;
+                }
+            }
+        });
+    });
+}
+
+function clearLines() {
+    let linesCleared = 0;
+    
+    for (let y = BOARD_HEIGHT - 1; y >= 0; y--) {
+        if (board[y].every(cell => cell !== 0)) {
+            board.splice(y, 1);
+            board.unshift(Array(BOARD_WIDTH).fill(0));
+            linesCleared++;
+            y++;
+        }
+    }
+    
+    if (linesCleared > 0) {
+        score += linesCleared * 100 * level;
+        document.getElementById('score').textContent = score;
+        
+        if (score >= level * 500) {
+            level++;
+            dropInterval = Math.max(100, 1000 - (level - 1) * 100);
+            document.getElementById('level').textContent = level;
+            clearInterval(gameLoop);
+            gameLoop = setInterval(moveDown, dropInterval);
+        }
+    }
+}
+
+function togglePause() {
+    isPaused = !isPaused;
+    if (isPaused) {
+        clearInterval(gameLoop);
+        pauseOverlay.style.display = 'flex';
+    } else {
+        gameLoop = setInterval(moveDown, dropInterval);
+        pauseOverlay.style.display = 'none';
+    }
+}
+
+function gameOver() {
+    clearInterval(gameLoop);
+    isPaused = false;
+    pauseOverlay.style.display = 'none';
+    alert('Game Over! Score: ' + score);
+    board = Array(BOARD_HEIGHT).fill().map(() => Array(BOARD_WIDTH).fill(0));
+    score = 0;
+    level = 1;
+    dropInterval = 1000;
+    document.getElementById('score').textContent = score;
+    document.getElementById('level').textContent = level;
+    createNewPiece();
+    gameLoop = setInterval(moveDown, dropInterval);
+}
+
+function restartGame() {
+    clearInterval(gameLoop);
+    isPaused = false;
+    pauseOverlay.style.display = 'none';
+    board = Array(BOARD_HEIGHT).fill().map(() => Array(BOARD_WIDTH).fill(0));
+    score = 0;
+    level = 1;
+    dropInterval = 1000;
+    document.getElementById('score').textContent = score;
+    document.getElementById('level').textContent = level;
+    createNewPiece();
+    gameLoop = setInterval(moveDown, dropInterval);
+}
+
+// Event listeners
+document.addEventListener('keydown', (e) => {
+    if (isPaused && e.key !== 'Escape') return;
+    switch(e.key) {
+        case 'Escape':
+            togglePause();
+            break;
+        case 'ArrowLeft':
+            currentPiecePosition.x--;
+            if (isCollision()) currentPiecePosition.x++;
+            break;
+        case 'ArrowRight':
+            currentPiecePosition.x++;
+            if (isCollision()) currentPiecePosition.x--;
+            break;
+        case 'ArrowUp':
+            rotate();
+            break;
+        case 'ArrowDown':
+            moveDown();
+            break;
+        case ' ':
+            while (!isCollision()) {
+                currentPiecePosition.y++;
+            }
+            currentPiecePosition.y--;
+            mergePiece();
+            clearLines();
+            createNewPiece();
+            break;
+    }
+    draw();
+});
+
+// Add click handler for space button
+document.querySelector('.space-button').addEventListener('click', () => {
+    while (!isCollision()) {
+        currentPiecePosition.y++;
+    }
+    currentPiecePosition.y--;
+    mergePiece();
+    clearLines();
+    createNewPiece();
+    draw();
+});
+
+// Start game
+createNewPiece();
+gameLoop = setInterval(moveDown, dropInterval);
+setInterval(draw, 16); // 60 FPS rendering
+
+// Add resume button event listener
+document.querySelector('.resume-button').addEventListener('click', () => {
+    if (isPaused) {
+        togglePause();
+    }
+});
+
+// Add pause button event listener
+document.querySelector('.pause-button').addEventListener('click', () => {
+    togglePause();
+});
+
+// Add restart button event listener
+document.querySelector('.restart-button').addEventListener('click', () => {
+    if (confirm('Are you sure you want to restart the game?')) {
+        restartGame();
+    }
+});
+</script>
+</body></html>
